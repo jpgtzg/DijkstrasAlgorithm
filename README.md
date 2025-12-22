@@ -5,8 +5,8 @@ This is a simple implementation of Dijkstra's Algorithm in Python.
 ## Installation
 
 ```bash
-git clone https://github.com/jpgtzg/Dijkstra-s-Algorithm.git
-cd Dijkstra-s-Algorithm
+git clone https://github.com/jpgtzg/DijkstrasAlgorithm.git
+cd DijkstrasAlgorithm
 uv sync
 ```
 
