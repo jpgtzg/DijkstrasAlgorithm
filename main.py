@@ -1,0 +1,147 @@
+# Written by Juan Pablo Gutierrez
+# Date: 2025-12-22
+
+from typing import Dict, List, Tuple
+
+import matplotlib.pyplot as plt
+import networkx as nx
+import heapq
+import random
+
+map: Dict[str, List[Tuple[str, int]]] = {
+    "a": [("b", random.randint(1, 10)), 
+          ("c", random.randint(1, 10)), 
+          ("d", random.randint(1, 10))],
+    "b": [("d", random.randint(1, 10)), 
+          ("e", random.randint(1, 10)), 
+          ("c", random.randint(1, 10))],
+    "c": [("f", random.randint(1, 10)),
+          ("e", random.randint(1, 10)),
+          ("a", random.randint(1, 10))],
+    "d": [("g", random.randint(1, 10)),
+          ("e", random.randint(1, 10))],
+    "e": [("g", random.randint(1, 10)),
+          ("f", random.randint(1, 10))],
+    "f": [("g", random.randint(1, 10)),
+          ("d", random.randint(1, 10))],
+    "g": [("a", random.randint(1, 10))]
+}
+
+def dijkstra(graph: Dict[str, List[Tuple[str, int]]], start: str):
+    """
+    Implement the Dijkstra's algorithm to find the shortest path from the start node to all other nodes.
+    """
+    distances: Dict[str, int] = {node: float('inf') for node in graph}
+    prev: Dict[str, str] = {node: None for node in graph}
+
+    # of course, the distance to the start node is 0
+    distances[start] = 0
+
+    # a priority queue will help us visiting the closes unvisited node
+    pq = [(0, start)]  
+
+    # we iterate while pq is not empty
+    while pq:
+        # get closest node
+        current_dist, u = heapq.heappop(pq)
+       
+        if current_dist > distances.get(u):
+            continue
+
+        # iterate over every edge from u
+        for v, weight in graph.get(u):
+            # calculate the distance to reach v from the current node, and update distance table
+            new_dist = current_dist + weight
+            if new_dist < distances.get(v):
+                # if it is closer via the current node, then update the value
+                distances[v] = new_dist
+
+                prev[v] = u 
+                # we push v to visit it
+                heapq.heappush(pq, (new_dist, v))
+
+    return distances, prev
+
+# given that prev marks the previous, closes note to reach it's ith element,
+# we can simply start from end, and go back until we reach start
+def get_path(prev: Dict[str, str], start:str, end: str):
+    path = []
+    curr = end
+
+    while curr is not None:
+        path.append(curr)
+        curr = prev[curr]
+    
+    path.reverse()
+
+    if path[0] == start:
+        return path
+    return [] # there is no way to reach the node
+
+
+# this was AI generated, but it works, it just displays the graph with the route highlighted in red
+def visualize_graph(graph: Dict[str, List[Tuple[str, int]]], route: List[str]):
+    """Visualize a weighted graph using matplotlib and networkx."""
+    G = nx.DiGraph()
+    
+    # Add edges with weights
+    for node, neighbors in graph.items():
+        for neighbor, weight in neighbors:
+            G.add_edge(node, neighbor, weight=weight)
+    
+    # Create a layout for the graph
+    pos = nx.spring_layout(G, k=2, iterations=50, seed=42)
+    
+    # Create the figure
+    plt.figure(figsize=(14, 10))
+    
+    # Draw all edges first (gray, thin)
+    nx.draw_networkx_edges(G, pos, edge_color='gray', 
+                           arrows=True, arrowsize=20, alpha=0.4, width=1)
+    
+    # Highlight route edges if route is provided
+    if route and len(route) > 1:
+        route_edges = [(route[i], route[i+1]) for i in range(len(route) - 1)]
+        # Filter to only include edges that exist in the graph
+        route_edges = [(u, v) for u, v in route_edges if G.has_edge(u, v)]
+        if route_edges:
+            nx.draw_networkx_edges(G, pos, edgelist=route_edges, 
+                                   edge_color='red', arrows=True, 
+                                   arrowsize=25, alpha=0.9, width=3)
+    
+    # Draw all nodes (light blue for non-route nodes)
+    nx.draw_networkx_nodes(G, pos, node_color='lightblue', 
+                           node_size=1000, alpha=0.9)
+    
+    # Highlight route nodes if route is provided
+    if route:
+        route_nodes = [node for node in route if node in G.nodes()]
+        if route_nodes:
+            nx.draw_networkx_nodes(G, pos, nodelist=route_nodes,
+                                   node_color='red', node_size=1200, 
+                                   alpha=0.9)
+    
+    # Draw labels for nodes
+    nx.draw_networkx_labels(G, pos, font_size=10, font_weight='bold')
+    
+    # Draw edge labels (weights)
+    edge_labels = {(u, v): d['weight'] for u, v, d in G.edges(data=True)}
+    nx.draw_networkx_edge_labels(G, pos, edge_labels, font_size=8)
+    
+    title = "Weighted Graph Visualization"
+    if route:
+        title += f" - Route: {' → '.join(route)}"
+    plt.title(title, fontsize=16, fontweight='bold')
+    plt.axis('off')
+    plt.tight_layout()
+    plt.show()
+
+if __name__ == "__main__":
+    while True:
+        start = input("Enter the start node: ")
+        end = input("Enter the end node: ")
+        dist, prev = dijkstra(map, start)
+        path = get_path(prev, start, end)
+        print("path to d:", path)
+        visualize_graph(map, path)
+        break
