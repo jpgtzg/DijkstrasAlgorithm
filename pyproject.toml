@@ -5,7 +5,12 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "folium>=0.20.0",
+    "mapclassify>=2.5.0",
     "matplotlib>=3.8.0",
     "networkx>=3.2.0",
     "osmnx>=2.0.7",
+    "scikit-learn>=1.8.0",
+    "streamlit>=1.28.0",
+    "streamlit-folium>=0.15.0",
 ]
